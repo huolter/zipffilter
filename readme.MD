@@ -12,6 +12,8 @@ Zipf's Law describes a power-law distribution often observed in natural datasets
 
 This library is useful for applications like text data cleaning, anomaly detection in web analytics, security auditing, or any domain where Zipfian distributions are expected.
 
+Read about the [Zipf Law](https://en.wikipedia.org/wiki/Zipf%27s_law) and the [Zipf-Mandelbrot law](https://en.wikipedia.org/wiki/Zipf%E2%80%93Mandelbrot_law)
+
 ## Installation
 
 To install the Zipf Filter library, clone the repository and install the required dependencies:
