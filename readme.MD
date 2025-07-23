@@ -17,7 +17,7 @@ This library is useful for applications like text data cleaning, anomaly detecti
 To install the Zipf Filter library, clone the repository and install the required dependencies:
 
 ```bash
-git clone https://github.com/yourusername/zipf-filter.git
+git clone https://github.com/huolter/zipffilter
 cd zipf-filter
 pip install -r requirements.txt
 ```
@@ -28,7 +28,7 @@ pip install -r requirements.txt
   - `numpy`
   - `scipy`
 
-Install dependencies using:
+Install dependencies using the requiremnts.txt file or:
 ```bash
 pip install numpy scipy
 ```
