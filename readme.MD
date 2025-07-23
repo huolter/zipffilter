@@ -20,7 +20,7 @@ To install the Zipf Filter library, clone the repository and install the require
 
 ```bash
 git clone https://github.com/huolter/zipffilter
-cd zipf-filter
+cd zipffilter
 pip install -r requirements.txt
 ```
 
@@ -41,7 +41,7 @@ The `ZipfFilter` class provides a simple interface for processing and filtering 
 
 ### Example
 ```python
-from zipf_filter import ZipfFilter
+from zipffilter import ZipfFilter
 
 # Sample sequence (e.g., word frequencies)
 sequence = ["apple", "banana", "apple", "cherry", "banana", "apple", "date", "date", "xyz", "xyz"]
