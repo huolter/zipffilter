@@ -4,7 +4,9 @@ A Python library for filtering sequences based on Zipf's Law. The Zipf Filter an
 
 ## Overview
 
-Zipf's Law describes a power-law distribution often observed in natural datasets, such as word frequencies in text or event occurrences. The Zipf Filter leverages this principle to:
+Zipf's Law describes a power-law distribution often observed in natural datasets, such as word frequencies in text or event occurrences. It states that in many natural datasets, an element's frequency is inversely proportional to its rank in the frequency table, creating a power-law distribution. This means the most common element occurs approximately twice as often as the second most common, three times as often as the third most common, and so on in a predictable pattern.
+
+The Zipf Filter leverages this principle to:
 - Compute the frequency and rank of elements in a sequence.
 - Fit a Zipf-Mandelbrot model to estimate the expected frequency distribution.
 - Identify and filter outliers based on a customizable sensitivity threshold.
