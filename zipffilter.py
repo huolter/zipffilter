@@ -19,7 +19,6 @@ class ZipfFilter:
         self.ranks = None
         self.filtered_sequence = None
         self.outliers = None
-        logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
     def zipf_mandelbrot(self, rank, k, a, b):
@@ -57,8 +56,8 @@ class ZipfFilter:
         
         # Count frequencies of elements
         freq_dict = Counter(sequence)
-        self.frequencies = np.array(list(freq_dict.values()))
-        sorted_freq = sorted(self.frequencies, reverse=True)
+        sorted_freq = sorted(freq_dict.values(), reverse=True)
+        self.frequencies = np.array(sorted_freq)
         self.ranks = np.arange(1, len(sorted_freq) + 1)
         
         # Fit Zipf-Mandelbrot model
@@ -102,7 +101,8 @@ class ZipfFilter:
         self.outliers = [rank_to_element[rank] for rank in self.ranks[outlier_indices]]
         
         # Filter sequence
-        self.filtered_sequence = [item for item in sequence if item not in self.outliers]
+        outlier_set = set(self.outliers)
+        self.filtered_sequence = [item for item in sequence if item not in outlier_set]
         
         return self.filtered_sequence, self.outliers
 

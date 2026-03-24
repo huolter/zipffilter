@@ -1,24 +1,23 @@
 # ZipfFilter
 
-A Python library for filtering sequences based on Zipf's Law. The Zipf Filter analyzes a sequence, fits a Zipf-Mandelbrot model to the frequency distribution, and removes or flags elements that deviate significantly from the expected pattern.
+A Python library for filtering sequences based on Zipf's Law. ZipfFilter analyzes a sequence, fits a Zipf-Mandelbrot model to the observed frequency distribution, and removes elements that deviate significantly from the expected pattern.
 
 ## Overview
 
-Zipf's Law describes a power-law distribution often observed in natural datasets, such as word frequencies in text or event occurrences. It states that in many natural datasets, an element's frequency is inversely proportional to its rank in the frequency table, creating a power-law distribution. This means the most common element occurs approximately twice as often as the second most common, three times as often as the third most common, and so on in a predictable pattern.
+[Zipf's Law](https://en.wikipedia.org/wiki/Zipf%27s_law) describes a power-law distribution commonly observed in natural datasets — word frequencies in text, event counts in web analytics, and more. It states that an element's frequency is inversely proportional to its rank in the frequency table: the most common element appears roughly twice as often as the second most common, three times as often as the third, and so on.
 
-The Zipf Filter leverages this principle to:
-- Compute the frequency and rank of elements in a sequence.
+ZipfFilter leverages the more general [Zipf-Mandelbrot law](https://en.wikipedia.org/wiki/Zipf%E2%80%93Mandelbrot_law) to:
+
+- Compute the frequency and rank of every element in a sequence.
 - Fit a Zipf-Mandelbrot model to estimate the expected frequency distribution.
-- Identify and filter outliers based on a customizable sensitivity threshold.
-- Provide metrics about the filtering process.
+- Identify and remove outliers based on a configurable sensitivity threshold.
+- Expose fit metrics and outlier details for downstream inspection.
 
-This library is useful for applications like text data cleaning, anomaly detection in web analytics, security auditing, or any domain where Zipfian distributions are expected.
-
-Read about the [Zipf Law](https://en.wikipedia.org/wiki/Zipf%27s_law) and the [Zipf-Mandelbrot law](https://en.wikipedia.org/wiki/Zipf%E2%80%93Mandelbrot_law)
+Typical applications include text data cleaning, anomaly detection in web analytics, security auditing, and any domain where a Zipfian distribution is a reasonable prior.
 
 ## Installation
 
-To install the Zipf Filter library, clone the repository and install the required dependencies:
+Clone the repository and install the required dependencies:
 
 ```bash
 git clone https://github.com/huolter/zipffilter
@@ -26,80 +25,75 @@ cd zipffilter
 pip install -r requirements.txt
 ```
 
-### Requirements
-- Python 3.6+
-- Dependencies:
-  - `numpy`
-  - `scipy`
+**Requirements**
 
-Install dependencies using the requiremnts.txt file or:
-```bash
-pip install numpy scipy
-```
+- Python 3.6+
+- `numpy` ≥ 1.19.0
+- `scipy` ≥ 1.5.0
 
 ## Usage
 
-The `ZipfFilter` class provides a simple interface for processing and filtering sequences.
+### Basic example
 
-### Example
 ```python
 from zipffilter import ZipfFilter
 
-# Sample sequence (e.g., word frequencies)
 sequence = ["apple", "banana", "apple", "cherry", "banana", "apple", "date", "date", "xyz", "xyz"]
 
-# Initialize the filter with a sensitivity threshold
 zf = ZipfFilter(sensitivity=0.2, use_relative_deviation=True)
-
-# Filter the sequence
 filtered_sequence, outliers = zf.filter_outliers(sequence)
 
-# Print results
-print("Filtered Sequence:", filtered_sequence)
+print("Filtered sequence:", filtered_sequence)
 print("Outliers:", outliers)
 print("Metrics:", zf.get_metrics())
 ```
 
-### Output
+**Output**
+
 ```
-Filtered Sequence: ['apple', 'banana', 'apple', 'cherry', 'banana', 'apple', 'date', 'date']
+Filtered sequence: ['apple', 'banana', 'apple', 'cherry', 'banana', 'apple', 'date', 'date']
 Outliers: ['xyz']
 Metrics: {'k': 3.1, 'a': 1.05, 'b': 2.8, 'sensitivity': 0.2, 'outliers': ['xyz'], 'num_outliers': 1}
 ```
 
 ### Parameters
-- `sensitivity` (float, default: 0.2): Threshold for identifying outliers. Lower values are stricter.
-- `use_relative_deviation` (bool, default: True): Use relative deviation instead of absolute deviation for outlier detection.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `sensitivity` | `float` | `0.2` | Deviation threshold above which an element is considered an outlier. Lower values are stricter. |
+| `use_relative_deviation` | `bool` | `True` | When `True`, deviation is normalized by the expected frequency, making the threshold scale-invariant. When `False`, raw absolute deviation is used. |
 
 ### Methods
-- `process_sequence(sequence)`: Analyzes the sequence and fits the Zipf-Mandelbrot model.
-- `filter_outliers(sequence)`: Filters the sequence and returns the filtered sequence and list of outliers.
-- `get_metrics()`: Returns a dictionary with fitted parameters (`k`, `a`, `b`), sensitivity, and outlier information.
 
-## Use Cases
-- **Text Data Cleaning**: Remove unusual words or typos that deviate from expected frequency patterns.
-- **Anomaly Detection**: Identify irregular patterns in web clicks, sales, or network traffic.
-- **Data Quality Control**: Detect errors or anomalies in datasets where Zipf's Law applies.
+| Method | Returns | Description |
+|---|---|---|
+| `process_sequence(sequence)` | `(freq_dict, sorted_frequencies)` | Counts element frequencies, assigns ranks in descending order, and fits the Zipf-Mandelbrot model. |
+| `filter_outliers(sequence)` | `(filtered_sequence, outliers)` | Runs the full pipeline and returns the cleaned sequence alongside the list of removed elements. |
+| `get_metrics()` | `dict` | Returns fitted model parameters (`k`, `a`, `b`), the configured sensitivity, the outlier list, and the outlier count. |
 
 ## How It Works
-1. **Frequency Analysis**: Counts occurrences of each element and ranks them by frequency.
-2. **Zipf-Mandelbrot Fit**: Uses `scipy.optimize.curve_fit` to estimate parameters for the Zipf-Mandelbrot law: `frequency = k / (rank + b)^a`.
-3. **Outlier Detection**: Calculates deviations from expected frequencies and flags elements exceeding the sensitivity threshold.
-4. **Filtering**: Removes or flags outliers, preserving elements that conform to the Zipfian distribution.
+
+1. **Frequency analysis** — Element occurrences are counted with `collections.Counter` and sorted in descending order to assign stable ranks (rank 1 = most frequent).
+2. **Model fitting** — `scipy.optimize.curve_fit` estimates the three parameters of the Zipf-Mandelbrot law: `frequency = k / (rank + b)^a`. If fitting fails (e.g., insufficient data), sensible defaults are used and a warning is emitted via the standard `logging` module.
+3. **Outlier detection** — For each rank, the absolute difference between the observed and expected frequency is computed. With `use_relative_deviation=True` this value is normalized by the expected frequency. Elements whose deviation exceeds `sensitivity` are flagged as outliers.
+4. **Filtering** — All occurrences of outlier elements are removed from the original sequence. Membership is tested against a `set` for O(1) lookup per element.
 
 ## Limitations
-- Small datasets may lead to unstable Zipf fits. The library includes fallback parameters to handle such cases.
-- The Zipf-Mandelbrot model assumes a power-law distribution, which may not apply to all datasets.
-- Sensitivity tuning may require experimentation for optimal results.
+
+- **Small datasets** may produce unstable model fits. A fallback to default parameters is applied automatically, but results should be interpreted with caution.
+- **Non-Zipfian data** — The Zipf-Mandelbrot model assumes a power-law distribution. Applying this filter to data that does not follow such a distribution will produce unreliable outlier classifications.
+- **Sensitivity tuning** — The appropriate threshold depends on the dataset and use case. Some experimentation is typically required.
 
 ## Contributing
-Contributions are welcome! Please open an issue or submit a pull request with improvements or bug fixes.
+
+Contributions are welcome. Please open an issue to discuss significant changes before submitting a pull request.
 
 1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Make your changes and commit (`git commit -m "Add feature"`).
-4. Push to the branch (`git push origin feature-branch`).
+2. Create a feature branch: `git checkout -b feature/your-feature`.
+3. Commit your changes: `git commit -m "Add your feature"`.
+4. Push to the branch: `git push origin feature/your-feature`.
 5. Open a pull request.
 
 ## Contact
-For questions or feedback, please open an issue or contact me at [x](https://x.com/walter_h_g_).
+
+For questions or feedback, open an issue or reach out on [X](https://x.com/walter_h_g_).
